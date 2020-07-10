@@ -1,0 +1,12 @@
+name: ramp-air-passengers
+channels:
+  - defaults
+dependencies:
+  - pip
+  - numpy
+  - scikit-learn>=0.22
+  - scipy
+  - pandas
+  - matplotlib
+  - pip:
+    - ramp-workflow
