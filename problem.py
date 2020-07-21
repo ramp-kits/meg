@@ -169,7 +169,7 @@ def get_cv(X, y):
 
 
 def _read_data(path, dir_name):
-    X_df = pd.read_csv(os.path.join(DATA_HOME, dir_name, 'X.csv'))
+    X_df = pd.read_csv(os.path.join(DATA_HOME, dir_name, 'X.csv.gz'))
     y_sparse = sparse.load_npz(
         os.path.join(DATA_HOME, dir_name, 'target.npz')).toarray()
     return X_df, y_sparse
