@@ -101,7 +101,7 @@ class SparseRegressor(BaseEstimator, ClassifierMixin, TransformerMixin):
             lead_matrix = np.load(lead_file)
 
             lead_file = os.path.basename(lead_file)
-            subj_dict[lead_file.split('_')[0]] = idx
+            subj_dict['subject_' + lead_file.split('_')[1]] = idx
 
             parcel_indices_leadfield.append(lead_matrix['parcel_indices'])
 
