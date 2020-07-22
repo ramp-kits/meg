@@ -9,54 +9,54 @@ PATH_DATA = os.path.join(
 )
 OSF_ARCHIVE = [
     OSFRemoteMetaData(
-        filename="CC120166_lead_field.npz",
-        id="tkb3n",
+        filename="subject_10_lead_field.npz",
+        id="j9b6n",
         revision=1,
     ),
     OSFRemoteMetaData(
-        filename="CC120182_lead_field.npz",
-        id="vmws3",
+        filename="subject_1_lead_field.npz",
+        id="fgdzp",
         revision=1,
     ),
     OSFRemoteMetaData(
-        filename="CC120218_lead_field.npz",
-        id="kvp48",
+        filename="subject_2_lead_field.npz",
+        id="r83sa",
         revision=1,
     ),
     OSFRemoteMetaData(
-        filename="CC120264_lead_field.npz",
-        id="3ej8h",
+        filename="subject_3_lead_field.npz",
+        id="vcp4g",
         revision=1,
     ),
     OSFRemoteMetaData(
-        filename="CC120309_lead_field.npz",
-        id="qpg48",
+        filename="subject_4_lead_field.npz",
+        id="snwka",
         revision=1,
     ),
     OSFRemoteMetaData(
-        filename="CC120313_lead_field.npz",
-        id="jt3wy",
+        filename="subject_5_lead_field.npz",
+        id="uh6gm",
         revision=1,
     ),
 
     OSFRemoteMetaData(
-        filename="CC120319_lead_field.npz",
-        id="esjtd",
+        filename="subject_6_lead_field.npz",
+        id="mz3bk",
         revision=1,
     ),
     OSFRemoteMetaData(
-        filename="CC120376_lead_field.npz",
-        id="n24zt",
+        filename="subject_7_lead_field.npz",
+        id="jhgx4",
         revision=1,
     ),
     OSFRemoteMetaData(
-        filename="CC120469_lead_field.npz",
-        id="zdxhk",
+        filename="subject_8_lead_field.npz",
+        id="fa3me",
         revision=1,
     ),
     OSFRemoteMetaData(
-        filename="CC120550_lead_field.npz",
-        id="q3w9h",
+        filename="subject_9_lead_field.npz",
+        id="5sy72",
         revision=1,
     )
 ]
@@ -64,12 +64,12 @@ OSF_ARCHIVE = [
 TEST_OSF_ARCHIVE = [
     OSFRemoteMetaData(
         filename="target.npz",
-        id="mj46z",
+        id="jc2r3",
         revision=1,
     ),
     OSFRemoteMetaData(
-        filename="X.csv",
-        id="7sx6r",
+        filename="X.csv.gz",
+        id="7ywn3",
         revision=1,
     )
 ]
@@ -77,12 +77,12 @@ TEST_OSF_ARCHIVE = [
 TRAIN_OSF_ARCHIVE = [
     OSFRemoteMetaData(
         filename="target.npz",
-        id="5zyvc",
+        id="9vrb6",
         revision=1,
     ),
     OSFRemoteMetaData(
-        filename="X.csv",
-        id="s7y25",
+        filename="X.csv.gz",
+        id="4ufyj",
         revision=1,
     )
 ]
