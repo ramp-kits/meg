@@ -1,4 +1,4 @@
-name: ramp-air-passengers
+name: ramp-meg
 channels:
   - defaults
 dependencies:
@@ -10,3 +10,4 @@ dependencies:
   - matplotlib
   - pip:
     - ramp-workflow
+    - ramp-utils
