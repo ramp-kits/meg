@@ -130,7 +130,7 @@ class EstimatorMEG(SKLearnPipeline):
         methods = ('auto', 'predict', 'predict_proba', 'decision_function')
 
         if self.predict_method not in methods:
-            raise NotImplementedError(f"'method' should be one of: {methods}"
+            raise NotImplementedError(f"'method' should be one of: {methods} "
                                       f"Got: {self.predict_method}")
         if self.predict_method == 'auto':
             if is_classifier(estimator_fitted):
