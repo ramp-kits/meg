@@ -106,8 +106,9 @@ class EstimatorMEG(SKLearnPipeline):
     Parameters
     ----------
     method : {'auto', 'predict', 'predict_proba', 'decision_function'}, \
-             default='auto
-        Prediction method to use.
+             default='auto'
+        Prediction method to use. If 'auto', uses 'predict_proba' when
+        estimator is a classifier and 'predict' otherwise.
     """
     def __init__(self, predict_method='auto'):
         super().__init__()
