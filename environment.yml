@@ -11,3 +11,4 @@ dependencies:
   - pip:
     - ramp-workflow
     - ramp-utils
+    - joblib >= 0.16
