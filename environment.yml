@@ -8,6 +8,7 @@ dependencies:
   - scipy
   - pandas
   - matplotlib
+  - functools
   - pip:
     - ramp-workflow
     - ramp-utils
