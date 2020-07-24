@@ -72,7 +72,7 @@ class _MultiOutputClassification(BasePrediction):
     @classmethod
     def combine(cls, predictions_list, index_list=None):
         """Inherits from the base class where the score are averaged.
-        Here, averaged predictions < 0.5 will be set to 0.0 and avearged
+        Here, averaged predictions < 0.5 will be set to 0.0 and averaged
         predictions >= 0.5 will be set to 1.0 so that `y_pred` will consist
         only of 0.0s and 1.0s.
         """
