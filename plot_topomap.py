@@ -1,4 +1,5 @@
 import mne
+import matplotlib.pyplot as plt
 
 # this is the script to be loaded from the starting kit. If you want to use it
 # standalone you need to provide the X data and import necessary python
