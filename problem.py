@@ -71,10 +71,10 @@ class _MultiOutputClassification(BasePrediction):
 
     @classmethod
     def combine(cls, predictions_list, index_list=None):
-        """Inherits from the base class where the score are arveraged.
-        Here all the predictions < 0.5 will be set to 0.0, and all the
-        predictions >= 0.5 will be set to 1.0 so that y_pred consists only of
-        0.0s and 1.0s
+        """Inherits from the base class where the score are averaged.
+        Here, averaged predictions < 0.5 will be set to 0.0 and avearged
+        predictions >= 0.5 will be set to 1.0 so that `y_pred` will consist
+        only of 0.0s and 1.0s.
         """
         # call the combine from the BasePrediction
         combined_predictions = super(
@@ -98,10 +98,17 @@ class _MultiOutputClassification(BasePrediction):
         return combined_predictions
 
 
-# estimator for the classification problem which uses predict instead of
+# Workflow for the classification problem which uses predict instead of
 # predict_proba
 class EstimatorMEG(SKLearnPipeline):
-    """chooose predict method"""
+    """Choose predict method.
+
+    Parameters
+    ----------
+    method : {'auto', 'predict', 'predict_proba', 'decision_function'}, \
+             default='auto
+        Prediction method to use.
+    """
     def __init__(self, predict_method='auto'):
         super().__init__()
         self.predict_method = predict_method
@@ -110,7 +117,7 @@ class EstimatorMEG(SKLearnPipeline):
         """Predict using a fitted estimator.
         Parameters
         ----------
-        estimator_fitted : estimator object
+        estimator_fitted : Estimator object
             A fitted scikit-learn estimator.
         X : {array-like, sparse matrix, dataframe} of shape \
                 (n_samples, n_features)
@@ -122,17 +129,19 @@ class EstimatorMEG(SKLearnPipeline):
         methods = ('auto', 'predict', 'predict_proba', 'decision_function')
 
         if self.predict_method not in methods:
-            raise NotImplementedError()  # bad method given
+            raise NotImplementedError(f"'method' should be one of: {methods}"
+                                      f"Got: {self.predict_method}")
         if self.predict_method == 'auto':
             if is_classifier(estimator_fitted):
                 return estimator_fitted.predict_proba(X)
             return estimator_fitted.predict(X)
         elif hasattr(estimator_fitted, self.predict_method):
-            # call estimator with the predict_method
+            # call estimator with the `predict_method`
             est_predict = getattr(estimator_fitted, self.predict_method)
             return est_predict(X)
         else:
-            raise NotImplementedError()  # estimator doesnt have that method
+            raise NotImplementedError("Estimator does not support method: "
+                                      f"{self.predict_method}.")
 
 
 def make_workflow():
@@ -152,7 +161,7 @@ def make_multioutput(n_columns):
     return partial_multioutput(n_columns=n_columns)
 
 
-problem_title = 'Source localisation of MEG signal'
+problem_title = 'Source localization of MEG signal'
 n_parcels = 450  # number of parcels in each brain used in this challenge
 Predictions = make_multioutput(n_columns=n_parcels)
 workflow = make_workflow()
