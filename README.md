@@ -1,4 +1,4 @@
-# RAMP starting kit on the MEG source localisation
+# RAMP starting kit on the MEG source localization
 
 
 [![Build Status](https://travis-ci.org/ramp-kits/meg.svg?branch=master)](https://travis-ci.org/ramp-kits/meg)
