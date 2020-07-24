@@ -170,9 +170,19 @@ def get_cv(X, y):
 
 def _read_data(path, dir_name):
     X_df = pd.read_csv(os.path.join(DATA_HOME, dir_name, 'X.csv.gz'))
-    y_sparse = sparse.load_npz(
+    y = sparse.load_npz(
         os.path.join(DATA_HOME, dir_name, 'target.npz')).toarray()
-    return X_df, y_sparse
+    test = os.getenv('RAMP_TEST_MODE', 0)
+    if test:
+        # First 2 subjects
+        X_df = X_df.iloc[:1000, :]
+        y = y[:1000, :]
+        # Every 20th sample
+        X_df = X_df.iloc[::20, :]
+        y = y[::20, :]
+        return X_df, y
+    else:
+        return X_df, y
 
 
 def get_train_data(path="."):
