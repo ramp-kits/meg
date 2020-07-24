@@ -5,4 +5,3 @@ scikit-learn>=0.22
 pandas
 matplotlib
 scipy
-joblib >= 0.16
