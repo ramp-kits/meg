@@ -84,16 +84,8 @@ class _MultiOutputClassification(BasePrediction):
                 index_list=index_list
                 )
 
-        combined_predictions.y_pred[np.less(
-            combined_predictions.y_pred,
-            0.5,
-            where=~np.isnan(combined_predictions.y_pred)
-            )] = 0.0
-        combined_predictions.y_pred[np.greater_equal(
-            combined_predictions.y_pred,
-            0.5,
-            where=~np.isnan(combined_predictions.y_pred)
-            )] = 0.0
+        combined_predictions.y_pred[combined_predictions.y_pred < 0.5] = 0.0
+        combined_predictions.y_pred[combined_predictions.y_pred >= 0.5] = 1.0
 
         return combined_predictions
 
@@ -168,7 +160,7 @@ Predictions = make_multioutput(n_columns=n_parcels)
 workflow = make_workflow()
 
 score_types = [
-    HammingLoss(name='hamming'),
+    HammingLoss(name='hamming loss'),
     JaccardError(name='jaccard error')  # TODO: decide on the score
 ]
 
