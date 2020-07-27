@@ -84,16 +84,8 @@ class _MultiOutputClassification(BasePrediction):
                 index_list=index_list
                 )
 
-        combined_predictions.y_pred[np.less(
-            combined_predictions.y_pred,
-            0.5,
-            where=~np.isnan(combined_predictions.y_pred)
-            )] = 0.0
-        combined_predictions.y_pred[np.greater_equal(
-            combined_predictions.y_pred,
-            0.5,
-            where=~np.isnan(combined_predictions.y_pred)
-            )] = 0.0
+        combined_predictions.y_pred[combined_predictions.y_pred < 0.5] = 0.0
+        combined_predictions.y_pred[combined_predictions.y_pred >= 0.5] = 1.0
 
         return combined_predictions
 
@@ -168,7 +160,7 @@ Predictions = make_multioutput(n_columns=n_parcels)
 workflow = make_workflow()
 
 score_types = [
-    HammingLoss(name='hamming'),
+    HammingLoss(name='hamming loss'),
     JaccardError(name='jaccard error')  # TODO: decide on the score
 ]
 
@@ -180,9 +172,19 @@ def get_cv(X, y):
 
 def _read_data(path, dir_name):
     X_df = pd.read_csv(os.path.join(DATA_HOME, dir_name, 'X.csv.gz'))
-    y_sparse = sparse.load_npz(
+    y = sparse.load_npz(
         os.path.join(DATA_HOME, dir_name, 'target.npz')).toarray()
-    return X_df, y_sparse
+    test = os.getenv('RAMP_TEST_MODE', 0)
+    if test:
+        # First 2 subjects
+        X_df = X_df.iloc[:1000, :]
+        y = y[:1000, :]
+        # Every 20th sample
+        X_df = X_df.iloc[::20, :]
+        y = y[::20, :]
+        return X_df, y
+    else:
+        return X_df, y
 
 
 def get_train_data(path="."):
