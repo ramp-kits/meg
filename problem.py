@@ -12,6 +12,7 @@ from sklearn.base import is_classifier
 from rampwf.prediction_types.base import BasePrediction
 from rampwf.workflows import SKLearnPipeline
 from rampwf.score_types import BaseScoreType
+import warnings
 
 
 DATA_HOME = "data"
@@ -83,9 +84,12 @@ class _MultiOutputClassification(BasePrediction):
                 predictions_list=predictions_list,
                 index_list=index_list
                 )
-
-        combined_predictions.y_pred[combined_predictions.y_pred < 0.5] = 0.0
-        combined_predictions.y_pred[combined_predictions.y_pred >= 0.5] = 1.0
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            combined_predictions.y_pred[
+                combined_predictions.y_pred < 0.5] = 0.0
+            combined_predictions.y_pred[
+                combined_predictions.y_pred >= 0.5] = 1.0
 
         return combined_predictions
 
