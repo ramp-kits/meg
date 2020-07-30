@@ -1,8 +1,8 @@
 language: python
 env:
-  - PYTHON_VERSION=3.8
-  - IPYTHON_KERNEL=python3
-  - NBCONVERT_TIMEOUT=600  # in seconds
+  - PYTHON_VERSION=3.8 
+    IPYTHON_KERNEL=python3 
+    NBCONVERT_TIMEOUT=600  # in seconds
 before_install:
     - wget -q http://repo.continuum.io/miniconda/Miniconda-3.6.0-Linux-x86_64.sh -O miniconda.sh
     - chmod +x miniconda.sh
