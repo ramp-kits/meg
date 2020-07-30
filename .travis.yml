@@ -2,7 +2,6 @@ language: python
 env:
   - PYTHON_VERSION=3.8 
     IPYTHON_KERNEL=python3 
-    NBCONVERT_TIMEOUT=1170  # in seconds
 before_install:
     - wget -q http://repo.continuum.io/miniconda/Miniconda-3.6.0-Linux-x86_64.sh -O miniconda.sh
     - chmod +x miniconda.sh
@@ -19,8 +18,7 @@ script:
     - python download_data.py
     - ramp-test --quick-test
     - ramp-test --submission lasso_lars --quick-test
-    - travis_wait 20 jupyter nbconvert --execute meg_starting_kit.ipynb 
+    - jupyter nbconvert --execute meg_starting_kit.ipynb 
       --ExecutePreprocessor.kernel_name=$IPYTHON_KERNEL 
-      --ExecutePreprocessor.timeout=$NBCONVERT_TIMEOUT
 notifications:
   email: true
