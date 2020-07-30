@@ -11,14 +11,14 @@ def get_estimator():
 
     # K-means
     clf = KNeighborsClassifier(n_neighbors=3)
-    kneighbours = MultiOutputClassifier(clf, n_jobs=N_JOBS)
+    kneighbors = MultiOutputClassifier(clf, n_jobs=N_JOBS)
 
-    preprocessor = make_column_transformer(("drop", 'subject'),
+    preprocessor = make_column_transformer(('drop', 'subject'),
                                            remainder='passthrough')
 
     pipeline = Pipeline([
         ('transformer', preprocessor),
-        ('classifier', kneighbours)
+        ('classifier', kneighbors)
     ])
 
     return pipeline
