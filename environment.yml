@@ -2,12 +2,14 @@ name: ramp-meg
 channels:
   - defaults
 dependencies:
-  - pip
+  - python >=3.7
+  - jupyterlab
   - numpy
-  - scikit-learn>=0.22
+  - scikit-learn >=0.22
   - scipy
   - pandas
   - matplotlib
+  - pip
   - pip:
     - ramp-workflow
     - ramp-utils
