@@ -1,4 +1,5 @@
 import functools
+import glob
 import numpy as np
 import os
 import pandas as pd
@@ -176,6 +177,7 @@ def get_cv(X, y):
 
 def _read_data(path, dir_name):
     X_df = pd.read_csv(os.path.join(DATA_HOME, dir_name, 'X.csv.gz'))
+    X_df.iloc[:, :-1] *= 1e12  # scale data to avoid tiny numbers
     y = sparse.load_npz(
         os.path.join(DATA_HOME, dir_name, 'target.npz')).toarray()
     test = os.getenv('RAMP_TEST_MODE', 0)
@@ -197,3 +199,27 @@ def get_train_data(path="."):
 
 def get_test_data(path="."):
     return _read_data(path, 'test')
+
+
+def get_leadfields():
+    data_dir = 'data/'
+
+    # find all the files ending with '_lead_field' in the data directory
+    lead_field_files = os.path.join(data_dir, '*lead_field.npz')
+    lead_field_files = sorted(glob.glob(lead_field_files))
+
+    parcel_indices, Ls = {}, {}
+
+    for lead_file in lead_field_files:
+        lead_field = np.load(lead_file)
+        lead_file = os.path.basename(lead_file)
+        subject_id = 'subject_' + lead_file.split('_')[1]
+        parcel_indices[subject_id] = lead_field['parcel_indices']
+        # scale L to avoid tiny numbers
+        Ls[subject_id] = 1e8 * lead_field['lead_field']
+        assert parcel_indices[subject_id].shape[0] == Ls[subject_id].shape[1]
+
+    assert len(parcel_indices) == len(Ls)
+    assert len(parcel_indices) >= 1  # at least a single subject
+
+    return Ls, parcel_indices
