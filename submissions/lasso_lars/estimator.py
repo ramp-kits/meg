@@ -6,21 +6,20 @@ import pandas as pd
 
 from sklearn import linear_model
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.base import ClassifierMixin
-from sklearn.multioutput import MultiOutputRegressor
-from sklearn.pipeline import Pipeline
+from sklearn.base import ClassifierMixin, RegressorMixin
 
 
 def _get_coef(est):
+    """Get coefficients from a fitted regression estimator."""
     if hasattr(est, 'steps'):
         return est.steps[-1][1].coef_
     return est.coef_
 
 
 class SparseRegressor(BaseEstimator, ClassifierMixin, TransformerMixin):
-    def __init__(self, model, n_jobs=1):
-        self.parcel_indices = []
-        self.lead_field = []
+    def __init__(self, Ls, parcel_indices, model, n_jobs=1):
+        self.Ls = Ls
+        self.parcel_indices = parcel_indices
         self.model = model
         self.n_jobs = n_jobs
 
@@ -30,7 +29,7 @@ class SparseRegressor(BaseEstimator, ClassifierMixin, TransformerMixin):
     def predict(self, X):
         return (self.decision_function(X) > 0).astype(int)
 
-    def _run_model(self, model, L, X, fraction_alpha=0.2):
+    def _run_model(self, model, L, X):
         norms = np.linalg.norm(L, axis=0)
         L = L / norms[None, :]
 
@@ -38,92 +37,73 @@ class SparseRegressor(BaseEstimator, ClassifierMixin, TransformerMixin):
         for idx, idx_used in enumerate(X.index.values):
             x = X.iloc[idx].values
             model.fit(L, x)
-            est_coef = np.abs(self._get_coef(model))
+            est_coef = np.abs(_get_coef(model))
             est_coef /= norms
             est_coefs[idx] = est_coef
 
         return est_coefs.T
 
     def decision_function(self, X):
-        X = X.copy()
-        X.iloc[:, :-2] *= 1e12
-
-        L, parcel_indices_L, subj_dict = self._get_lead_field_info()
-        # use only Lead Fields of the subjects found in X
-        subj_dict = dict((k, subj_dict[k]) for k in np.unique(X['subject']))
-        self.lead_field, self.parcel_indices = [], []
-        subj_dict_x = {}
-        for idx, s_key in enumerate(subj_dict.keys()):
-            subj_dict_x[s_key] = idx
-            self.lead_field.append(L[subj_dict[s_key]])
-            self.parcel_indices.append(parcel_indices_L[subj_dict[s_key]])
-
-        X['subject_id'] = X['subject'].map(subj_dict_x)
-        X.astype({'subject_id': 'int32'}).dtypes
-        model = MultiOutputRegressor(self.model, n_jobs=self.n_jobs)
         X = X.reset_index(drop=True)
 
-        betas = np.empty((len(X), 0)).tolist()
-        for subj_idx in np.unique(X['subject_id']):
-            l_used = self.lead_field[subj_idx]
+        n_parcels = np.max([np.max(s) for s in self.parcel_indices.values()])
+        betas = np.empty((len(X), n_parcels))
+        for subj_idx in np.unique(X['subject']):
+            L_used = self.Ls[subj_idx]
 
-            X_used = X[X['subject_id'] == subj_idx]
-            X_used = X_used.iloc[:, :-2]
+            X_used = X[X['subject'] == subj_idx]
+            X_used = X_used.drop('subject', axis=1)
 
-            norms = l_used.std(axis=0)
-            l_used = l_used / norms[None, :]
+            est_coef = self._run_model(self.model, L_used, X_used)
 
-            alpha_max = abs(l_used.T.dot(X_used.T)).max() / len(l_used)
-            alpha = 0.2 * alpha_max
-            model.estimator.alpha = alpha
-            model.fit(l_used, X_used.T)  # cross validation done here
-
-            for idx, idx_used in enumerate(X_used.index.values):
-                est_coef = np.abs(_get_coef(model.estimators_[idx]))
-                est_coef /= norms
-                beta = pd.DataFrame(
-                        np.abs(est_coef)
-                        ).groupby(
-                        self.parcel_indices[subj_idx]).max().transpose()
-                betas[idx_used] = np.array(beta).ravel()
-        betas = np.array(betas)
+            beta = pd.DataFrame(
+                np.abs(est_coef)
+            ).groupby(self.parcel_indices[subj_idx]).max().transpose()
+            betas[X['subject'] == subj_idx] = np.array(beta)
         return betas
 
-    def _get_lead_field_info(self):
-        data_dir = 'data/'
 
-        lead_field_files = os.path.join(data_dir, '*lead_field.npz')
-        lead_field_files = sorted(glob.glob(lead_field_files))
+class CustomSparseEstimator(BaseEstimator, RegressorMixin):
+    def __init__(self, alpha=0.2):
+        self.alpha = alpha
 
-        parcel_indices_leadfield, L = [], []
-        subj_dict = {}
-        for idx, lead_file in enumerate(lead_field_files):
-            lead_matrix = np.load(lead_file)
+    def fit(self, L, x):
+        alpha_max = abs(L.T.dot(x)).max() / len(L)
+        alpha = self.alpha * alpha_max
+        lasso = linear_model.LassoLars(alpha=alpha, max_iter=3,
+                                       normalize=False, fit_intercept=False)
+        lasso.fit(L, x)
+        self.coef_ = lasso.coef_
 
-            lead_file = os.path.basename(lead_file)
-            subj_dict['subject_' + lead_file.split('_')[1]] = idx
 
-            parcel_indices_leadfield.append(lead_matrix['parcel_indices'])
+def get_leadfields():
+    data_dir = 'data/'
 
-            # scale L to avoid tiny numbers
-            L.append(1e8 * lead_matrix['lead_field'])
-            assert parcel_indices_leadfield[idx].shape[0] == L[idx].shape[1]
+    # find all the files ending with '_lead_field' in the data directory
+    lead_field_files = os.path.join(data_dir, '*lead_field.npz')
+    lead_field_files = sorted(glob.glob(lead_field_files))
 
-        assert len(parcel_indices_leadfield) == len(L) == idx + 1
-        assert len(subj_dict) >= 1  # at least a single subject
+    parcel_indices, Ls = {}, {}
 
-        return L, parcel_indices_leadfield, subj_dict
+    for lead_file in lead_field_files:
+        lead_field = np.load(lead_file)
+        lead_file = os.path.basename(lead_file)
+        subject_id = 'subject_' + lead_file.split('_')[1]
+        parcel_indices[subject_id] = lead_field['parcel_indices']
+        # scale L to avoid tiny numbers
+        Ls[subject_id] = 1e8 * lead_field['lead_field']
+        assert parcel_indices[subject_id].shape[0] == Ls[subject_id].shape[1]
+
+    assert len(parcel_indices) == len(Ls)
+    assert len(parcel_indices) >= 1  # at least a single subject
+
+    return Ls, parcel_indices
 
 
 def get_estimator():
+    Ls, parcel_indices = get_leadfields()
+    custom_model = CustomSparseEstimator(alpha=0.2)
+    lasso_lars_alpha = \
+        SparseRegressor(Ls, parcel_indices, custom_model)
 
-    model_lars = linear_model.LassoLars(max_iter=3, normalize=False,
-                                        fit_intercept=False)
-
-    lasso_lars = SparseRegressor(model_lars)
-
-    pipeline = Pipeline([
-        ('classifier', lasso_lars)
-    ])
-
-    return pipeline
+    return lasso_lars_alpha

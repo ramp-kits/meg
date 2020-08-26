@@ -4,7 +4,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
 
 
-N_JOBS = -1
+N_JOBS = 1
 
 
 def get_estimator():
