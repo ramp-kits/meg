@@ -10,13 +10,14 @@ before_install:
 install:
     - conda create -n testenv --yes pip python=$PYTHON_VERSION
     - source activate testenv
-    - pip install -q flake8 nbconvert[test]
+    - pip install -q flake8 nbconvert
     - pip install -r requirements.txt
 script:
     - flake8 *.py submissions/*/*.py --exclude plot_topomap.py
     - python download_data.py
     - ramp-test --quick-test
     - ramp-test --submission lasso_lars --quick-test
-    - jupyter nbconvert --execute meg_starting_kit.ipynb --ExecutePreprocessor.kernel_name=$IPYTHON_KERNEL
+    - jupyter nbconvert --execute meg_starting_kit.ipynb
+      --ExecutePreprocessor.kernel_name=$IPYTHON_KERNEL
 notifications:
   email: true
