@@ -8,6 +8,7 @@ from scipy import sparse
 from sklearn.model_selection import ShuffleSplit
 from sklearn.metrics import hamming_loss
 from sklearn.metrics import jaccard_score
+from ot import emd2
 
 from sklearn.base import is_classifier
 from rampwf.prediction_types.base import BasePrediction
@@ -49,6 +50,31 @@ class JaccardError(BaseScoreType):
 
     def __call__(self, y_true_proba, y_proba):
         score = 1 - jaccard_score(y_true_proba, y_proba, average='samples')
+        return score
+
+
+class EMDScore(BaseScoreType):
+    is_lower_the_better = True
+    minimum = 0.0
+    maximum = float('inf')
+
+    def __init__(self, name='emd score'):
+        self.name = name
+        ground_metric_path = "data/ground_metric.npy"
+        self.ground_metric = np.load(ground_metric_path)
+
+    def __call__(self, y_true_proba, y_proba):
+        y_true_max = y_true_proba.max()
+        y_max = y_proba.max()
+        # special treatment for the all zero cases
+        if y_max * y_true_max == 0:
+            if y_max or y_true_max:
+                return self.ground_metric.max()
+            else:
+                return 0
+        y_true_proba /= y_true_proba.sum()
+        y_proba /= y_proba.sum()
+        score = emd2(y_true_proba, y_proba, self.ground_metric)
         return score
 
 
