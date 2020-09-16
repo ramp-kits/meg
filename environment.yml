@@ -13,3 +13,4 @@ dependencies:
   - pip:
     - ramp-workflow
     - ramp-utils
+    - pot
