@@ -189,10 +189,10 @@ def _read_data(path, dir_name):
         os.path.join(DATA_HOME, dir_name, 'target.npz')).toarray()
     test = os.getenv('RAMP_TEST_MODE', 0)
     if test:
-        # First 2 subjects
+        # First 3000 samples (take the first subjects)
         X_df = X_df.iloc[:3000, :]
         y = y[:3000, :]
-        # Every 20th sample
+        # Every 20th sample (only a few samples for all subjects)
         X_df = X_df.iloc[::20, :]
         y = y[::20, :]
         return X_df, y
