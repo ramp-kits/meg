@@ -60,29 +60,36 @@ class EMDScore(BaseScoreType):
 
     def __init__(self, name='emd score', precision=3):
         self.name = name
-        ground_metric_path = "ground_metric.npy"
+        ground_metric_path = \
+            os.path.join(os.path.dirname(__file__), "ground_metric.npy")
         self.ground_metric = np.load(ground_metric_path)
         self.ground_metric /= self.ground_metric.max()
         self.precision = precision
 
     def __call__(self, y_true_proba, y_proba):
-        y_true_max = y_true_proba.max()
-        y_max = y_proba.max()
-        # special treatment for the all zero cases
-        if y_max * y_true_max == 0:
-            if y_max or y_true_max:
-                return self.ground_metric.max()
-            else:
-                return 0
+        scores = []
 
-        y_true_proba /= y_true_proba.sum(axis=1)[:, None]
-        y_proba = y_proba.astype(np.float64)
-        y_proba /= y_proba.sum(axis=1)[:, None]
+        for this_y_true, this_y_proba in zip(y_true_proba, y_proba):
+            this_y_true_max = this_y_true.max()
+            this_y_proba_max = this_y_proba.max()
 
-        for y_true_next, y_proba_next in zip(y_true_proba, y_proba):
-            score = emd2(y_true_next, y_proba_next, self.ground_metric)
+            # special treatment for the all zero cases
+            if (this_y_true_max * this_y_proba_max) == 0:
+                if this_y_true_max or this_y_proba_max:
+                    scores.append(1.)  # as ground_metric max is 1
+                else:
+                    scores.append(0.)
+                continue
 
-        return score
+            this_y_true = this_y_true.astype(np.float64) / this_y_true.sum()
+            this_y_proba = this_y_proba.astype(np.float64) / this_y_proba.sum()
+
+            score = emd2(this_y_true, this_y_proba, self.ground_metric)
+            scores.append(score)
+
+        assert len(scores) == len(y_true_proba)
+        assert len(y_proba) == len(y_true_proba)
+        return np.mean(scores)
 
 
 class _MultiOutputClassification(BasePrediction):
