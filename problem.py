@@ -58,10 +58,12 @@ class EMDScore(BaseScoreType):
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, name='emd score'):
+    def __init__(self, name='emd score', precision=3):
         self.name = name
-        ground_metric_path = "data/ground_metric.npy"
+        ground_metric_path = "ground_metric.npy"
         self.ground_metric = np.load(ground_metric_path)
+        self.ground_metric /= self.ground_metric.max()
+        self.precision = precision
 
     def __call__(self, y_true_proba, y_proba):
         y_true_max = y_true_proba.max()
@@ -72,9 +74,14 @@ class EMDScore(BaseScoreType):
                 return self.ground_metric.max()
             else:
                 return 0
-        y_true_proba /= y_true_proba.sum()
-        y_proba /= y_proba.sum()
-        score = emd2(y_true_proba, y_proba, self.ground_metric)
+
+        y_true_proba /= y_true_proba.sum(axis=1)[:, None]
+        y_proba = y_proba.astype(np.float64)
+        y_proba /= y_proba.sum(axis=1)[:, None]
+
+        for y_true_next, y_proba_next in zip(y_true_proba, y_proba):
+            score = emd2(y_true_next, y_proba_next, self.ground_metric)
+
         return score
 
 
@@ -192,7 +199,8 @@ workflow = make_workflow()
 
 score_types = [
     HammingLoss(name='hamming loss'),
-    JaccardError(name='jaccard error')  # TODO: decide on the score
+    JaccardError(name='jaccard error'),  # TODO: decide on the score
+    EMDScore(name='EMD')
 ]
 
 
