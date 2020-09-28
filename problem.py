@@ -35,7 +35,7 @@ class HammingLoss(BaseScoreType):
         self.precision = precision
 
     def __call__(self, y_true_proba, y_proba):
-        score = hamming_loss(y_true_proba, y_proba)
+        score = 100 * hamming_loss(y_true_proba, y_proba)
         return score
 
 
@@ -135,8 +135,8 @@ class EstimatorMEG(SKLearnPipeline):
 
     Parameters
     ----------
-    method : {'auto', 'predict', 'predict_proba', 'decision_function'}, \
-             default='auto'
+    predict_method : {'auto', 'predict', 'predict_proba',
+            'decision_function'}, default='auto'
         Prediction method to use. If 'auto', uses 'predict_proba' when
         estimator is a classifier and 'predict' otherwise.
     """
@@ -146,6 +146,7 @@ class EstimatorMEG(SKLearnPipeline):
 
     def test_submission(self, estimator_fitted, X):
         """Predict using a fitted estimator.
+
         Parameters
         ----------
         estimator_fitted : Estimator object
@@ -153,6 +154,7 @@ class EstimatorMEG(SKLearnPipeline):
         X : {array-like, sparse matrix, dataframe} of shape \
                 (n_samples, n_features)
             The test data set.
+
         Returns
         -------
         pred : ndarray of shape (n_samples, n_classes) or (n_samples)
@@ -205,7 +207,12 @@ score_types = [
 
 
 def get_cv(X, y):
-    cv = ShuffleSplit(n_splits=8, test_size=0.5, random_state=RANDOM_STATE)
+    test = os.getenv('RAMP_TEST_MODE', 0)
+    n_splits = 8
+    if test:
+        n_splits = 2
+    cv = ShuffleSplit(n_splits=n_splits, test_size=0.5,
+                      random_state=RANDOM_STATE)
     return cv.split(X, y)
 
 
@@ -216,10 +223,10 @@ def _read_data(path, dir_name):
         os.path.join(DATA_HOME, dir_name, 'target.npz')).toarray()
     test = os.getenv('RAMP_TEST_MODE', 0)
     if test:
-        # First 2 subjects
-        X_df = X_df.iloc[:1000, :]
-        y = y[:1000, :]
-        # Every 20th sample
+        # First 3000 samples (take the first subjects)
+        X_df = X_df.iloc[:3000, :]
+        y = y[:3000, :]
+        # Every 20th sample (only a few samples for all subjects)
         X_df = X_df.iloc[::20, :]
         y = y[::20, :]
         return X_df, y

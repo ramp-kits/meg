@@ -34,7 +34,7 @@ class SparseRegressor(BaseEstimator, ClassifierMixin, TransformerMixin):
         L = L / norms[None, :]
 
         est_coefs = np.empty((X.shape[0], L.shape[1]))
-        for idx, idx_used in enumerate(X.index.values):
+        for idx in range(len(X)):
             x = X.iloc[idx].values
             model.fit(L, x)
             est_coef = np.abs(_get_coef(model))
