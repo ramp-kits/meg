@@ -8,6 +8,7 @@ from scipy import sparse
 from sklearn.model_selection import ShuffleSplit
 from sklearn.metrics import hamming_loss
 from sklearn.metrics import jaccard_score
+from ot import emd2
 
 from sklearn.base import is_classifier
 from rampwf.prediction_types.base import BasePrediction
@@ -50,6 +51,45 @@ class JaccardError(BaseScoreType):
     def __call__(self, y_true_proba, y_proba):
         score = 1 - jaccard_score(y_true_proba, y_proba, average='samples')
         return score
+
+
+class EMDScore(BaseScoreType):
+    is_lower_the_better = True
+    minimum = 0.0
+    maximum = float('inf')
+
+    def __init__(self, name='emd score', precision=3):
+        self.name = name
+        ground_metric_path = \
+            os.path.join(os.path.dirname(__file__), "ground_metric.npy")
+        self.ground_metric = np.load(ground_metric_path)
+        self.ground_metric /= self.ground_metric.max()
+        self.precision = precision
+
+    def __call__(self, y_true_proba, y_proba):
+        scores = []
+
+        for this_y_true, this_y_proba in zip(y_true_proba, y_proba):
+            this_y_true_max = this_y_true.max()
+            this_y_proba_max = this_y_proba.max()
+
+            # special treatment for the all zero cases
+            if (this_y_true_max * this_y_proba_max) == 0:
+                if this_y_true_max or this_y_proba_max:
+                    scores.append(1.)  # as ground_metric max is 1
+                else:
+                    scores.append(0.)
+                continue
+
+            this_y_true = this_y_true.astype(np.float64) / this_y_true.sum()
+            this_y_proba = this_y_proba.astype(np.float64) / this_y_proba.sum()
+
+            score = emd2(this_y_true, this_y_proba, self.ground_metric)
+            scores.append(score)
+
+        assert len(scores) == len(y_true_proba)
+        assert len(y_proba) == len(y_true_proba)
+        return np.mean(scores)
 
 
 class _MultiOutputClassification(BasePrediction):
@@ -167,8 +207,9 @@ Predictions = make_multioutput(n_columns=n_parcels)
 workflow = make_workflow()
 
 score_types = [
-    HammingLoss(name='hamming loss (%)'),
-    JaccardError(name='jaccard error')  # TODO: decide on the score
+    HammingLoss(name='hamming loss'),
+    JaccardError(name='jaccard error'),  # TODO: decide on the score
+    EMDScore(name='EMD')
 ]
 
 
