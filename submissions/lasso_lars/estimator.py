@@ -80,7 +80,7 @@ def get_leadfields():
     data_dir = 'data/'
 
     # find all the files ending with '_lead_field' in the data directory
-    lead_field_files = os.path.join(data_dir, '*lead_field.npz')
+    lead_field_files = os.path.join(data_dir, '*L.npz')
     lead_field_files = sorted(glob.glob(lead_field_files))
 
     parcel_indices, Ls = {}, {}
