@@ -1,102 +1,61 @@
 import os
+from osfclient.api import OSF
 
-from ramp_utils.datasets import fetch_from_osf
-from ramp_utils.datasets import OSFRemoteMetaData
+# NOTE: we are not using the fetch_from_osf from ramp_utils.datasets because
+# too many files are to be loaded (hence checking the id of each of them would
+# be too time consuming)
 
+# in the command line: osf -p t4uf8 clone temp/
+# however this corresponds to the whole project. we are interested only in the
+# stroke data here
 
-PATH_DATA = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "data"
-)
-OSF_ARCHIVE = [
-    OSFRemoteMetaData(
-        filename="subject_10_lead_field.npz",
-        id="j9b6n",
-        revision=1,
-    ),
-    OSFRemoteMetaData(
-        filename="subject_1_lead_field.npz",
-        id="fgdzp",
-        revision=1,
-    ),
-    OSFRemoteMetaData(
-        filename="subject_2_lead_field.npz",
-        id="r83sa",
-        revision=1,
-    ),
-    OSFRemoteMetaData(
-        filename="subject_3_lead_field.npz",
-        id="vcp4g",
-        revision=1,
-    ),
-    OSFRemoteMetaData(
-        filename="subject_4_lead_field.npz",
-        id="snwka",
-        revision=1,
-    ),
-    OSFRemoteMetaData(
-        filename="subject_5_lead_field.npz",
-        id="uh6gm",
-        revision=1,
-    ),
+# this script does the same as (from terminal)
+# osf upload local_path remote_path
 
-    OSFRemoteMetaData(
-        filename="subject_6_lead_field.npz",
-        id="mz3bk",
-        revision=1,
-    ),
-    OSFRemoteMetaData(
-        filename="subject_7_lead_field.npz",
-        id="jhgx4",
-        revision=1,
-    ),
-    OSFRemoteMetaData(
-        filename="subject_8_lead_field.npz",
-        id="fa3me",
-        revision=1,
-    ),
-    OSFRemoteMetaData(
-        filename="subject_9_lead_field.npz",
-        id="5sy72",
-        revision=1,
-    )
-]
+LOCAL_PATH = 'data'  # local path to the data
+REMOTE_PATH = 'MEG/'  # remote path where to store the data on OSF
+PROJECT_CODE = 't4uf8'  # to find your PROJECT_CODE navigate to your OSF
+# project on the web. The link will be something of this type:
+# https://osf.io/t4uf8/ , here t4uf8 is the PROJECT_CODE
 
-TEST_OSF_ARCHIVE = [
-    OSFRemoteMetaData(
-        filename="target.npz",
-        id="jc2r3",
-        revision=1,
-    ),
-    OSFRemoteMetaData(
-        filename="X.csv.gz",
-        id="7ywn3",
-        revision=1,
-    )
-]
+# if the file already exists it will overwrite it
+# osf = OSF(username=USERNAME, password=PASSWORD)
+osf = OSF()
+project = osf.project(PROJECT_CODE)
 
-TRAIN_OSF_ARCHIVE = [
-    OSFRemoteMetaData(
-        filename="target.npz",
-        id="9vrb6",
-        revision=1,
-    ),
-    OSFRemoteMetaData(
-        filename="X.csv.gz",
-        id="4ufyj",
-        revision=1,
-    )
-]
+destination = 'https://osf.io/' + PROJECT_CODE + '/'
+store = project.storage('osfstorage')
 
 
-def download_data():
-    fetch_from_osf(path_data=PATH_DATA, metadata=OSF_ARCHIVE)
+def download_from_osf():
+    file_idx = 0
+    for file_ in store.files:
+        # get only those files which are stored in REMOTE_PATH
+        pathname = file_.path
 
-    fetch_from_osf(path_data=os.path.join(PATH_DATA, 'test'),
-                   metadata=TEST_OSF_ARCHIVE)
+        if REMOTE_PATH not in pathname:
+            # we are not interested in this file
+            continue
+        # otherwise we are copying it locally
+        # check if the directory tree exists and add the dirs if necessary
 
-    fetch_from_osf(path_data=os.path.join(PATH_DATA, 'train'),
-                   metadata=TRAIN_OSF_ARCHIVE)
+        # do not include project name
+        pathname = pathname[pathname.find(REMOTE_PATH)+len(REMOTE_PATH):]
+        save_file = os.path.join(LOCAL_PATH, pathname)
+        pathfile, filename = os.path.split(save_file)
+
+        if not os.path.exists(pathfile):
+            os.makedirs(pathfile)
+
+        if not os.path.exists(save_file):
+            # do not save it if the file already exists
+            with open(save_file, "wb") as f:
+                file_.write_to(f)
+            file_idx += 1
+        else:
+            print(f'Skipping existing file {save_file}')
+    print(f'saved {file_idx} files to {LOCAL_PATH}')
 
 
 if __name__ == "__main__":
-    download_data()
+    download_from_osf()
