@@ -7,7 +7,7 @@ from osfclient.api import OSF
 
 # in the command line: osf -p t4uf8 clone temp/
 # however this corresponds to the whole project. we are interested only in the
-# stroke data here
+# MEG data here
 
 # this script does the same as (from terminal)
 # osf upload local_path remote_path
