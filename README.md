@@ -1,5 +1,9 @@
-# RAMP starting kit on the MEG source localization
+# Predicting the neural origin of magnetic signals
+RAMP starting kit 
 
+<div style="text-align: center">
+<img src="https://raw.githubusercontent.com/ramp-kits/meg/master/figs/meg_logo.png" width="250px" />
+</div>
 
 [![Build Status](https://travis-ci.org/ramp-kits/meg.svg?branch=master)](https://travis-ci.org/ramp-kits/meg)
 
@@ -45,3 +49,17 @@ ramp-test --help
 
 You can find more information regarding `ramp-workflow` in the
 [dedicated documentation](https://paris-saclay-cds.github.io/ramp-docs/ramp-workflow/stable/using_kits.html)
+
+<table class="equalDivide" cellpadding="0" cellspacing="0" width="100%" border="0">
+    <tr>
+        <td height="40%">
+            <img src="https://raw.githubusercontent.com/ramp-kits/meg/master/figs/logo_cds.png" width="500px" ALIGN=”left”/> 
+        </td>
+        <td height="30%">
+            <img src="https://raw.githubusercontent.com/ramp-kits/meg/master/figs/logo_inria.png" width="250px" ALIGN=”left”/> 
+        </td>
+        <td height="30%">
+            <img src="https://raw.githubusercontent.com/ramp-kits/meg/master/figs/logo_aws.png" width="100px" ALIGN=”left”/> 
+        </td>
+    </tr>
+</table>
