@@ -207,9 +207,9 @@ Predictions = make_multioutput(n_columns=n_parcels)
 workflow = make_workflow()
 
 score_types = [
-    HammingLoss(name='hamming loss'),
+    EMDScore(name='EMD'),
     JaccardError(name='jaccard error'),  # TODO: decide on the score
-    EMDScore(name='EMD')
+    HammingLoss(name='hamming loss')
 ]
 
 
