@@ -17,6 +17,13 @@ def _get_coef(est):
 
 
 class SparseRegressor(BaseEstimator, ClassifierMixin, TransformerMixin):
+    """ Provided regression estimator (ie model) solves inverse problem
+        using data X and lead field L. The estimated coefficients are then used
+        to predict which parcels are active.
+
+        X must be of a specific structure with a column name 'subject'
+        matching the order in which Ls are provided."""
+
     def __init__(self, Ls, parcel_indices, model, n_jobs=1):
         self.Ls = Ls
         self.parcel_indices = parcel_indices
@@ -64,6 +71,8 @@ class SparseRegressor(BaseEstimator, ClassifierMixin, TransformerMixin):
 
 
 class CustomSparseEstimator(BaseEstimator, RegressorMixin):
+    """ Regression estimator which uses LassoLars algorithm with given alpha
+        normalized for each lead field L and x. """
     def __init__(self, alpha=0.2):
         self.alpha = alpha
 
