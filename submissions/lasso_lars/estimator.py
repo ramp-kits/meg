@@ -18,8 +18,8 @@ def _get_coef(est):
 
 class SparseRegressor(BaseEstimator, ClassifierMixin, TransformerMixin):
     """ Provided regression estimator (ie model) solves inverse problem
-        using data X and lead field L. The estimated coefficients are then used
-        to predict which parcels are active.
+        using data X and lead field L. The estimated coefficients (est_coef
+        sometimes called z) are then used to predict which parcels are active.
 
         X must be of a specific structure with a column name 'subject'
         matching the order in which Ls are provided."""
