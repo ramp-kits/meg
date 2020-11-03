@@ -223,10 +223,10 @@ def get_cv(X, y):
 
 
 def _read_data(path, dir_name):
-    X_df = pd.read_csv(os.path.join(DATA_HOME, dir_name, 'X.csv.gz'))
+    X_df = pd.read_csv(os.path.join(path, DATA_HOME, dir_name, 'X.csv.gz'))
     X_df.iloc[:, :-1] *= 1e12  # scale data to avoid tiny numbers
     y = sparse.load_npz(
-        os.path.join(DATA_HOME, dir_name, 'target.npz')).toarray()
+        os.path.join(path, DATA_HOME, dir_name, 'target.npz')).toarray()
     test = os.getenv('RAMP_TEST_MODE', 0)
     if test:
         # First 3000 samples (take the first subjects)
