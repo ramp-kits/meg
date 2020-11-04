@@ -5,7 +5,8 @@ import os
 import pandas as pd
 from scipy import sparse
 
-from sklearn.model_selection import ShuffleSplit
+# from sklearn.model_selection import ShuffleSplit
+from sklearn.model_selection import GroupShuffleSplit
 from sklearn.metrics import hamming_loss
 from sklearn.metrics import jaccard_score
 from ot import emd2
@@ -217,9 +218,12 @@ def get_cv(X, y):
     n_splits = 8
     if test:
         n_splits = 2
-    cv = ShuffleSplit(n_splits=n_splits, test_size=0.5,
-                      random_state=RANDOM_STATE)
-    return cv.split(X, y)
+
+    gss = GroupShuffleSplit(n_splits=n_splits, test_size=.2,
+                            random_state=RANDOM_STATE)
+    groups = X['subject']
+
+    return gss.split(X, y, groups)
 
 
 def _read_data(path, dir_name):
@@ -229,12 +233,13 @@ def _read_data(path, dir_name):
         os.path.join(path, DATA_HOME, dir_name, 'target.npz')).toarray()
     test = os.getenv('RAMP_TEST_MODE', 0)
     if test:
+        # TODO: need to be corrected:
         # First 3000 samples (take the first subjects)
-        X_df = X_df.iloc[:3000, :]
-        y = y[:3000, :]
+        # X_df = X_df.iloc[:3000, :]
+        # y = y[:3000, :]
         # Every 20th sample (only a few samples for all subjects)
-        X_df = X_df.iloc[::20, :]
-        y = y[::20, :]
+        # X_df = X_df.iloc[::20, :]
+        # y = y[::20, :]
         return X_df, y
     else:
         return X_df, y
