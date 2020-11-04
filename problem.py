@@ -215,7 +215,7 @@ score_types = [
 
 def get_cv(X, y):
     test = os.getenv('RAMP_TEST_MODE', 0)
-    n_splits = 8
+    n_splits = 2
     if test:
         n_splits = 2
 
@@ -234,7 +234,7 @@ def _read_data(path, dir_name):
 
     if test:
         # decrease datasize
-        X_df.reset_index(drop=True)  # make sure the indices are ordered
+        X_df = X_df.reset_index(drop=True)  # make sure the indices are ordered
         # 1. take only first 2 subjects
         subjects_used = np.unique(X_df['subject'])[:2]
         X_df = X_df.loc[X_df['subject'].isin(subjects_used)]
@@ -243,8 +243,10 @@ def _read_data(path, dir_name):
         n_samples = 500  # use only 500 samples/subject
         X_df = X_df.groupby('subject').apply(
             lambda s: s.sample(n_samples, random_state=42))
+        X_df = X_df.reset_index(level=0, drop=True)  # drop subject index
+
         # get y corresponding to chosen X_df
-        y = y[X_df.index.get_level_values(None)]
+        y = y[X_df.index]
         return X_df, y
     else:
         return X_df, y
