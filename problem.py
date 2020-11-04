@@ -222,7 +222,6 @@ def get_cv(X, y):
     gss = GroupShuffleSplit(n_splits=n_splits, test_size=.2,
                             random_state=RANDOM_STATE)
     groups = X['subject']
-
     return gss.split(X, y, groups)
 
 
@@ -232,14 +231,20 @@ def _read_data(path, dir_name):
     y = sparse.load_npz(
         os.path.join(path, DATA_HOME, dir_name, 'target.npz')).toarray()
     test = os.getenv('RAMP_TEST_MODE', 0)
+
     if test:
-        # TODO: need to be corrected:
-        # First 3000 samples (take the first subjects)
-        # X_df = X_df.iloc[:3000, :]
-        # y = y[:3000, :]
-        # Every 20th sample (only a few samples for all subjects)
-        # X_df = X_df.iloc[::20, :]
-        # y = y[::20, :]
+        # decrease datasize
+        X_df.reset_index(drop=True)  # make sure the indices are ordered
+        # 1. take only first 2 subjects
+        subjects_used = np.unique(X_df['subject'])[:2]
+        X_df = X_df.loc[X_df['subject'].isin(subjects_used)]
+
+        # 2. take only n_samples from each of the subjects
+        n_samples = 500  # use only 500 samples/subject
+        X_df = X_df.groupby('subject').apply(
+            lambda s: s.sample(n_samples, random_state=42))
+        # get y corresponding to chosen X_df
+        y = y[X_df.index.get_level_values(None)]
         return X_df, y
     else:
         return X_df, y
