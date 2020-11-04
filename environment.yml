@@ -9,6 +9,7 @@ dependencies:
   - scipy
   - pandas
   - matplotlib
+  - imbalanced-learn
   - pip
   - pip:
     - ramp-workflow
