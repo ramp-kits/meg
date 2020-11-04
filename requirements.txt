@@ -7,4 +7,4 @@ matplotlib
 osfclient
 scipy
 pot
-imbalance-learn
+imbalanced-learn
