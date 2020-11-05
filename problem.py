@@ -215,14 +215,21 @@ score_types = [
 
 def get_cv(X, y):
     test = os.getenv('RAMP_TEST_MODE', 0)
-    n_splits = 2
+    n_splits = 5
     if test:
         n_splits = 2
 
     gss = GroupShuffleSplit(n_splits=n_splits, test_size=.2,
                             random_state=RANDOM_STATE)
     groups = X['subject']
-    return gss.split(X, y, groups)
+    folds = gss.split(X, y, groups)
+
+    # take only 500 samples per test subject for speed
+    def limit_test_size(folds):
+        rng = np.random.RandomState(RANDOM_STATE)
+        for train, test in folds:
+            yield (train, test[rng.permutation(len(test))[:500]])
+    return limit_test_size(folds)
 
 
 def _read_data(path, dir_name):
