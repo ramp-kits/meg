@@ -5,9 +5,7 @@ import os
 import pandas as pd
 from scipy import sparse
 
-# from sklearn.model_selection import ShuffleSplit
 from sklearn.model_selection import GroupShuffleSplit
-from sklearn.metrics import hamming_loss
 from sklearn.metrics import jaccard_score
 from ot import emd2
 
@@ -22,24 +20,11 @@ DATA_HOME = "data"
 RANDOM_STATE = 42
 
 # Author: Maria Telenczuk <github: maikia>
+#         Alex Gramfort <github: agramfort>
 # License: BSD 3 clause
 
 
 # define the scores
-class HammingLoss(BaseScoreType):
-    is_lower_the_better = True
-    minimum = 0.0
-    maximum = float('inf')
-
-    def __init__(self, name='hamming loss', precision=3):
-        self.name = name
-        self.precision = precision
-
-    def __call__(self, y_true_proba, y_proba):
-        score = 100 * hamming_loss(y_true_proba, y_proba)
-        return score
-
-
 class JaccardError(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
@@ -50,7 +35,11 @@ class JaccardError(BaseScoreType):
         self.precision = precision
 
     def __call__(self, y_true_proba, y_proba):
-        score = 1 - jaccard_score(y_true_proba, y_proba, average='samples')
+        mask = ~np.any(np.isnan(y_proba), axis=1)
+
+        score = 1 - jaccard_score(y_true_proba[mask],
+                                  y_proba[mask],
+                                  average='samples')
         return score
 
 
@@ -69,6 +58,10 @@ class EMDScore(BaseScoreType):
 
     def __call__(self, y_true_proba, y_proba):
         scores = []
+
+        mask = ~np.any(np.isnan(y_proba), axis=1)
+        y_proba = y_proba[mask]
+        y_true_proba = y_true_proba[mask]
 
         for this_y_true, this_y_proba in zip(y_true_proba, y_proba):
             this_y_true_max = this_y_true.max()
@@ -168,21 +161,44 @@ class EstimatorMEG(SKLearnPipeline):
         pred : ndarray of shape (n_samples, n_classes) or (n_samples)
         """
         methods = ('auto', 'predict', 'predict_proba', 'decision_function')
+        n_samples = len(X)
+        X = X.reset_index(drop=True)  # make sure the indices are ordered
+
+        # Take only n_samples from each of the subjects
+        # we use only up to 500 samples/subject
+        n_samples_max = min(500, X['subject'].value_counts().min())
+        X = X.groupby('subject').apply(
+            lambda s: s.sample(n_samples_max, random_state=42))
+
+        X = X.reset_index(level=0, drop=True)  # drop subject index
+
+        # get y corresponding to chosen X_df
+        mask = np.zeros(n_samples, dtype=bool)
+        mask[X.index] = True
 
         if self.predict_method not in methods:
             raise NotImplementedError(f"'method' should be one of: {methods} "
                                       f"Got: {self.predict_method}")
         if self.predict_method == 'auto':
             if is_classifier(estimator_fitted):
-                return estimator_fitted.predict_proba(X)
-            return estimator_fitted.predict(X)
+                y_pred = estimator_fitted.predict_proba(X)
+            else:
+                y_pred = estimator_fitted.predict(X)
         elif hasattr(estimator_fitted, self.predict_method):
             # call estimator with the `predict_method`
             est_predict = getattr(estimator_fitted, self.predict_method)
-            return est_predict(X)
+            y_pred = est_predict(X)
         else:
             raise NotImplementedError("Estimator does not support method: "
                                       f"{self.predict_method}.")
+
+        if np.any(np.isnan(y_pred)):
+            raise ValueError('NaNs found in the predictions.')
+
+        y_pred_full = \
+            np.full(fill_value=np.nan, shape=(mask.size, y_pred.shape[1]))
+        y_pred_full[mask] = y_pred
+        return y_pred_full
 
 
 def make_workflow():
@@ -247,7 +263,7 @@ def _read_data(path, dir_name):
         X_df = X_df.loc[X_df['subject'].isin(subjects_used)]
 
         # 2. take only n_samples from each of the subjects
-        n_samples = 500  # use only 500 samples/subject
+        n_samples = 30  # use only 500 samples/subject
         X_df = X_df.groupby('subject').apply(
             lambda s: s.sample(n_samples, random_state=42))
         X_df = X_df.reset_index(level=0, drop=True)  # drop subject index
