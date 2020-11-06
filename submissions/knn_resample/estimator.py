@@ -1,5 +1,3 @@
-import numpy as np
-
 from imblearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator
 from sklearn.compose import make_column_transformer
