@@ -5,7 +5,7 @@ from sklearn.base import BaseEstimator
 from sklearn.compose import make_column_transformer
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.neighbors import KNeighborsClassifier
-
+from sklearn.base import ClassifierMixin, TransformerMixin
 
 N_JOBS = 1
 
@@ -27,8 +27,20 @@ class Resampler(BaseEstimator):
 
         # get y corresponding to chosen X_df
         y = y[X.index]
-
         return X, y
+
+
+class Checker(BaseEstimator, ClassifierMixin, TransformerMixin):
+    def fit(self, X, y):
+        print('fit')
+        print(f'x.shape:{X.shape}')
+        print(f'y.shape:{y.shape}')
+        return self
+
+    def transform(self, X):
+        print('transform')
+        print(f'x.shape:{X.shape}')
+        return X
 
 
 def get_estimator():
@@ -39,9 +51,13 @@ def get_estimator():
                                            remainder='passthrough')
     rus = Resampler()
 
+    checker = Checker()
     pipeline = Pipeline([
         ('downsampler', rus),
+        ('checker', checker),
         ('transformer', preprocessor),
+        # ('checker2', checker),
         ('classifier', kneighbors)
+
         ])
     return pipeline
