@@ -1,6 +1,3 @@
-import os
-import glob
-
 import numpy as np
 import pandas as pd
 
@@ -24,11 +21,13 @@ class SparseRegressor(BaseEstimator, ClassifierMixin, TransformerMixin):
         X must be of a specific structure with a column name 'subject'
         matching the order in which Ls are provided."""
 
-    def __init__(self, Ls, parcel_indices, model, n_jobs=1):
-        self.Ls = Ls
-        self.parcel_indices = parcel_indices
+    def __init__(self, model, n_jobs=1):
+        # self.Ls = Ls
+        # self.parcel_indices = parcel_indices
         self.model = model
         self.n_jobs = n_jobs
+        self.parcel_indices = {}
+        self.Ls = {}
 
     def fit(self, X, y):
         return self
@@ -53,13 +52,24 @@ class SparseRegressor(BaseEstimator, ClassifierMixin, TransformerMixin):
     def decision_function(self, X):
         X = X.reset_index(drop=True)
 
+        for subject_id in np.unique(X['subject']):
+            # load corresponding L
+            L_used = X[X['subject'] == subject_id]['L_path'].iloc[0]
+            lead_field = np.load(L_used)
+            self.parcel_indices[subject_id] = lead_field['parcel_indices']
+
+            # scale L to avoid tiny numbers
+            self.Ls[subject_id] = 1e8 * lead_field['lead_field']
+            assert (self.parcel_indices[subject_id].shape[0] ==
+                    self.Ls[subject_id].shape[1])
+
         n_parcels = np.max([np.max(s) for s in self.parcel_indices.values()])
         betas = np.empty((len(X), n_parcels))
         for subj_idx in np.unique(X['subject']):
             L_used = self.Ls[subj_idx]
 
             X_used = X[X['subject'] == subj_idx]
-            X_used = X_used.drop('subject', axis=1)
+            X_used = X_used.drop(['subject', 'L_path'], axis=1)
 
             est_coef = self._run_model(self.model, L_used, X_used)
 
@@ -85,34 +95,9 @@ class CustomSparseEstimator(BaseEstimator, RegressorMixin):
         self.coef_ = lasso.coef_
 
 
-def get_leadfields():
-    data_dir = 'data/'
-
-    # find all the files ending with '_lead_field' in the data directory
-    lead_field_files = os.path.join(data_dir, '*L.npz')
-    lead_field_files = sorted(glob.glob(lead_field_files))
-
-    parcel_indices, Ls = {}, {}
-
-    for lead_file in lead_field_files:
-        lead_field = np.load(lead_file)
-        lead_file = os.path.basename(lead_file)
-        subject_id = 'subject_' + lead_file.split('_')[1]
-        parcel_indices[subject_id] = lead_field['parcel_indices']
-        # scale L to avoid tiny numbers
-        Ls[subject_id] = 1e8 * lead_field['lead_field']
-        assert parcel_indices[subject_id].shape[0] == Ls[subject_id].shape[1]
-
-    assert len(parcel_indices) == len(Ls)
-    assert len(parcel_indices) >= 1  # at least a single subject
-
-    return Ls, parcel_indices
-
-
 def get_estimator():
-    Ls, parcel_indices = get_leadfields()
+    # Ls, parcel_indices = get_leadfields()
     custom_model = CustomSparseEstimator(alpha=0.2)
-    lasso_lars_alpha = \
-        SparseRegressor(Ls, parcel_indices, custom_model)
+    lasso_lars_alpha = SparseRegressor(custom_model)
 
     return lasso_lars_alpha

@@ -16,7 +16,8 @@ from rampwf.score_types import BaseScoreType
 import warnings
 
 
-DATA_HOME = "data"
+DATA_HOME = ""
+DATA_PATH = "data"
 RANDOM_STATE = 42
 
 # Author: Maria Telenczuk <github: maikia>
@@ -251,10 +252,26 @@ def get_cv(X, y):
 
 
 def _read_data(path, dir_name):
-    X_df = pd.read_csv(os.path.join(path, DATA_HOME, dir_name, 'X.csv.gz'))
+    DATA_HOME = path
+    X_df = pd.read_csv(os.path.join(DATA_HOME,
+                                    DATA_PATH,
+                                    dir_name, 'X.csv.gz'))
     X_df.iloc[:, :-1] *= 1e12  # scale data to avoid tiny numbers
+
+    # add a new column lead_field where you will insert a path to the
+    # lead_field for each subject
+    lead_field_files = os.path.join(DATA_HOME, DATA_PATH, '*L.npz')
+    lead_field_files = sorted(glob.glob(lead_field_files))
+
+    lead_subject = {}
+    # add a row with the path to the correct LeadField to each subject
+    for key in np.unique(X_df['subject']):
+        path_L = [s for s in lead_field_files if key + '_L' in s][0]
+        lead_subject[key] = path_L
+    X_df['L_path'] = X_df.apply(lambda row: lead_subject[row.subject], axis=1)
+
     y = sparse.load_npz(
-        os.path.join(path, DATA_HOME, dir_name, 'target.npz')).toarray()
+        os.path.join(DATA_HOME, DATA_PATH, dir_name, 'target.npz')).toarray()
     test = os.getenv('RAMP_TEST_MODE', 0)
 
     if test:
@@ -286,10 +303,8 @@ def get_test_data(path="."):
 
 
 def get_leadfields():
-    data_dir = 'data/'
-
     # find all the files ending with '_lead_field' in the data directory
-    lead_field_files = os.path.join(data_dir, '*L.npz')
+    lead_field_files = os.path.join(DATA_HOME, DATA_PATH, '*L.npz')
     lead_field_files = sorted(glob.glob(lead_field_files))
 
     parcel_indices, Ls = {}, {}
