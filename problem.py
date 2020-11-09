@@ -282,7 +282,7 @@ def _read_data(path, dir_name):
         X_df = X_df.loc[X_df['subject'].isin(subjects_used)]
 
         # 2. take only n_samples from each of the subjects
-        n_samples = 30  # use only 500 samples/subject
+        n_samples = 500  # use only 500 samples/subject
         X_df = X_df.groupby('subject').apply(
             lambda s: s.sample(n_samples, random_state=42))
         X_df = X_df.reset_index(level=0, drop=True)  # drop subject index
@@ -300,25 +300,3 @@ def get_train_data(path="."):
 
 def get_test_data(path="."):
     return _read_data(path, 'test')
-
-
-def get_leadfields():
-    # find all the files ending with '_lead_field' in the data directory
-    lead_field_files = os.path.join(DATA_HOME, DATA_PATH, '*L.npz')
-    lead_field_files = sorted(glob.glob(lead_field_files))
-
-    parcel_indices, Ls = {}, {}
-
-    for lead_file in lead_field_files:
-        lead_field = np.load(lead_file)
-        lead_file = os.path.basename(lead_file)
-        subject_id = 'subject_' + lead_file.split('_')[1]
-        parcel_indices[subject_id] = lead_field['parcel_indices']
-        # scale L to avoid tiny numbers
-        Ls[subject_id] = 1e8 * lead_field['lead_field']
-        assert parcel_indices[subject_id].shape[0] == Ls[subject_id].shape[1]
-
-    assert len(parcel_indices) == len(Ls)
-    assert len(parcel_indices) >= 1  # at least a single subject
-
-    return Ls, parcel_indices

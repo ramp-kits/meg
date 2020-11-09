@@ -18,12 +18,11 @@ class SparseRegressor(BaseEstimator, ClassifierMixin, TransformerMixin):
         using data X and lead field L. The estimated coefficients (est_coef
         sometimes called z) are then used to predict which parcels are active.
 
-        X must be of a specific structure with a column name 'subject'
-        matching the order in which Ls are provided."""
+        X must be of a specific structure with a column name 'subject' and
+        'L_path' which gives the path to lead_field files for each subject
+    """
 
     def __init__(self, model, n_jobs=1):
-        # self.Ls = Ls
-        # self.parcel_indices = parcel_indices
         self.model = model
         self.n_jobs = n_jobs
         self.parcel_indices = {}
