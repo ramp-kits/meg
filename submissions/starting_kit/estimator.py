@@ -4,7 +4,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
 
 
-N_JOBS = 1
+N_JOBS = -1
 
 
 def get_estimator():
@@ -13,7 +13,7 @@ def get_estimator():
     clf = KNeighborsClassifier(n_neighbors=3)
     kneighbors = MultiOutputClassifier(clf, n_jobs=N_JOBS)
 
-    preprocessor = make_column_transformer(('drop', 'subject'),
+    preprocessor = make_column_transformer(('drop', ['subject', 'L_path']),
                                            remainder='passthrough')
 
     pipeline = Pipeline([

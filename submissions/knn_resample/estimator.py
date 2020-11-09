@@ -4,7 +4,7 @@ from sklearn.compose import make_column_transformer
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
-N_JOBS = 1
+N_JOBS = -1
 
 
 class Resampler(BaseEstimator):
@@ -17,7 +17,7 @@ def get_estimator():
     # K-nearest neighbors
     clf = KNeighborsClassifier(n_neighbors=3)
     kneighbors = MultiOutputClassifier(clf, n_jobs=N_JOBS)
-    preprocessor = make_column_transformer(('drop', 'subject'),
+    preprocessor = make_column_transformer(('drop', ['subject', 'L_path']),
                                            remainder='passthrough')
     rus = Resampler()
 
