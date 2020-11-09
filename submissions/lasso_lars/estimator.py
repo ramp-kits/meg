@@ -53,15 +53,16 @@ class SparseRegressor(BaseEstimator, ClassifierMixin, TransformerMixin):
         X = X.reset_index(drop=True)
 
         for subject_id in np.unique(X['subject']):
-            # load corresponding L
-            L_used = X[X['subject'] == subject_id]['L_path'].iloc[0]
-            lead_field = np.load(L_used)
-            self.parcel_indices[subject_id] = lead_field['parcel_indices']
+            if subject_id not in self.Ls:
+                # load corresponding L if it's not already in
+                L_used = X[X['subject'] == subject_id]['L_path'].iloc[0]
+                lead_field = np.load(L_used)
+                self.parcel_indices[subject_id] = lead_field['parcel_indices']
 
-            # scale L to avoid tiny numbers
-            self.Ls[subject_id] = 1e8 * lead_field['lead_field']
-            assert (self.parcel_indices[subject_id].shape[0] ==
-                    self.Ls[subject_id].shape[1])
+                # scale L to avoid tiny numbers
+                self.Ls[subject_id] = 1e8 * lead_field['lead_field']
+                assert (self.parcel_indices[subject_id].shape[0] ==
+                        self.Ls[subject_id].shape[1])
 
         n_parcels = np.max([np.max(s) for s in self.parcel_indices.values()])
         betas = np.empty((len(X), n_parcels))
