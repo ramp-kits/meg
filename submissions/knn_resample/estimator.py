@@ -14,7 +14,7 @@ class Resampler(BaseEstimator):
 
 
 def get_estimator():
-    # K-means
+    # K-nearest neighbors
     clf = KNeighborsClassifier(n_neighbors=3)
     kneighbors = MultiOutputClassifier(clf, n_jobs=N_JOBS)
     preprocessor = make_column_transformer(('drop', 'subject'),

@@ -9,7 +9,7 @@ N_JOBS = 1
 
 def get_estimator():
 
-    # K-means
+    # K-nearest neighbors
     clf = KNeighborsClassifier(n_neighbors=3)
     kneighbors = MultiOutputClassifier(clf, n_jobs=N_JOBS)
 
