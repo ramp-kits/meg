@@ -9,6 +9,12 @@ dependencies:
   - scipy
   - pandas
   - matplotlib
+  - tensorflow-gpu
+  - pytorch
+  - keras
+  - lightgbm
+  - xgboost
+  - catboost
   - pip
   - pip:
     - ramp-workflow
