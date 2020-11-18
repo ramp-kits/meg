@@ -161,6 +161,7 @@ class EstimatorMEG(SKLearnPipeline):
         -------
         pred : ndarray of shape (n_samples, n_classes) or (n_samples)
         """
+
         methods = ('auto', 'predict', 'predict_proba', 'decision_function')
         n_samples = len(X)
         X = X.reset_index(drop=True)  # make sure the indices are ordered
@@ -170,10 +171,12 @@ class EstimatorMEG(SKLearnPipeline):
         # This was introduced because if the user decided to reduce the
         # training data size it still was testing on the full training dataset
         n_samples_max = min(500, X['subject'].value_counts().min())
+
         X = X.groupby('subject').apply(
             lambda s: s.sample(n_samples_max, random_state=42))
 
         X = X.reset_index(level=0, drop=True)  # drop subject index
+        X = X.sort_index()
 
         # get y corresponding to chosen X
         mask = np.zeros(n_samples, dtype=bool)
