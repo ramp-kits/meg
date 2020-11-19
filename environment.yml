@@ -1,9 +1,9 @@
 name: ramp-meg
 channels:
+  - conda-forge
   - defaults
 dependencies:
   - python >=3.7
-  - jupyterlab
   - numpy
   - scikit-learn >=0.22
   - scipy
@@ -13,12 +13,13 @@ dependencies:
   - pytorch
   - keras
   - lightgbm
-  - xgboost
-  - catboost
   - pip
   - pip:
+    - osfclient
     - ramp-workflow
     - ramp-utils
     - pot
     - imbalanced-learn
     - gudhi
+    - xgboost
+    - catboost
