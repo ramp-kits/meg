@@ -4,7 +4,6 @@ channels:
   - defaults
 dependencies:
   - python >=3.7
-  # - jupyterlab
   - numpy
   - scikit-learn >=0.22
   - scipy
@@ -14,8 +13,6 @@ dependencies:
   - pytorch
   - keras
   - lightgbm
-  # - xgboost
-  # - catboost
   - pip
   - pip:
     - osfclient
@@ -24,3 +21,5 @@ dependencies:
     - pot
     - imbalanced-learn
     - gudhi
+    - xgboost
+    - catboost
