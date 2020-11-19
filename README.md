@@ -5,7 +5,7 @@ RAMP starting kit
 <img src="https://raw.githubusercontent.com/ramp-kits/meg/master/figs/meg_logo.png" width="250px" />
 </div>
 
-[![Build Status](https://travis-ci.com/ramp-kits/meg.svg?branch=master)](https://travis-ci.org/ramp-kits/meg)
+[![Build Status](https://github.com/ramp-kits/meg/workflows/build/badge.svg?branch=master&event=push)](https://github.com/ramp-kits/meg/actions)
 
 
 ## Getting started
