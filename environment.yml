@@ -18,6 +18,7 @@ dependencies:
   # - catboost
   - pip
   - pip:
+    - osfclient
     - ramp-workflow
     - ramp-utils
     - pot
