@@ -14,6 +14,8 @@ dependencies:
   - pytorch
   - keras
   - lightgbm
+  # - xgboost
+  # - catboost
   - pip
   - pip:
     - ramp-workflow
