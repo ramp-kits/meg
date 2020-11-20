@@ -23,3 +23,6 @@ dependencies:
     - gudhi
     - xgboost
     - catboost
+    - scikit-multilearn
+    - python-louvain
+
