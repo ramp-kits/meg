@@ -1,0 +1,10 @@
+scipy
+tensorflow-gpu
+pytorch
+keras
+lightgbm
+gudhi
+xgboost
+catboost
+scikit-multilearn
+python-louvain
