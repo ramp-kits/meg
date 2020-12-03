@@ -3,16 +3,19 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python >=3.7
   - numpy
-  - scikit-learn >=0.22
+  - scikit-learn>=0.22
   - scipy
+  - click
   - pandas
   - matplotlib
+
+  # Extra requirements
   - tensorflow-gpu
   - pytorch
   - keras
   - lightgbm
+
   - pip
   - pip:
     - osfclient
@@ -20,6 +23,8 @@ dependencies:
     - ramp-utils
     - pot
     - imbalanced-learn
+
+    # Extra requirements pip
     - gudhi
     - xgboost
     - catboost
