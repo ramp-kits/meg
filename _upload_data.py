@@ -6,9 +6,7 @@ import tarfile
 # this script does the same as (from terminal)
 # osf -r -p your_password -u your_username upload local_path remote_path
 
-LOCAL_PATH = 'path/data'  # local path to the data
-LOCAL_PATH = '/home/maja/Desktop/temp/ramp_challenge'
-REMOTE_PATH = 'test'  # remote path where to store the data on OSF
+REMOTE_PATH = 'meg'  # remote path where to store the data on OSF
 # if the data in this path already exists it will be overwritten
 PROJECT_CODE_PUBLIC = 't4uf8'  # to find your PROJECT_CODE navigate to your OSF
 # project on the web. The link will be something of this type:
@@ -25,17 +23,21 @@ PROJECT_CODE_PRIVATE = 'vw8sh'
     "--password", required=True,
     help="Your password to the private repository"
 )
-def upload_recursive_to_osf(username, password):
+@click.option(
+    "--local_path", required=True,
+    help="path where you store all the data"
+)
+def upload_recursive_to_osf(username, password, local_path):
     # here we are only using recursive
-    if not os.path.isdir(LOCAL_PATH):
-        raise RuntimeError(f"Expected source ({LOCAL_PATH})"
+    if not os.path.isdir(local_path):
+        raise RuntimeError(f"Expected source ({local_path})"
                            "to be a directory")
     osf = OSF(username=username, password=password)
 
     # ########################################################
     # TODO: make the split to public and private data directories
     # to have a path:
-    # LOCAL_PATH
+    # local_path
     #       |---public
     #       |---private
     # all the data in the public directory will be added to the
@@ -49,20 +51,18 @@ def upload_recursive_to_osf(username, password):
     for project_code, project_type in zip(project_codes, project_types):
 
         print(f'compressing {project_type} data')
-        used_dir = os.path.join(LOCAL_PATH, project_type)
-        tar_name = os.path.join(LOCAL_PATH, project_type + '.tar.gz')
+        used_dir = os.path.join(local_path, project_type)
+        tar_name = os.path.join(local_path, project_type + '.tar.gz')
 
         # add files from the given dir to your archive
-        def _add_dir_to_archive(path, tar_name):
-            with tarfile.open(tar_name, "w:gz") as tar_handle:
-                for root, dirs, files in os.walk(path):
-                    local_dir = os.path.relpath(root, path)
-                    if local_dir == '.':
-                        local_dir = ''
-                    for file in files:
-                        tar_handle.add(os.path.join(root, file),
-                                       arcname=os.path.join(local_dir, file))
-        _add_dir_to_archive(used_dir, tar_name)
+        with tarfile.open(tar_name, "w:gz") as tar_handle:
+            for root, dirs, files in os.walk(used_dir):
+                local_dir = os.path.relpath(root, used_dir)
+                if local_dir == '.':
+                    local_dir = ''
+                for file in files:
+                    tar_handle.add(os.path.join(root, file),
+                                   arcname=os.path.join(local_dir, file))
         print(f'uploading {project_type} data')
 
         # establish the connection with the correct repo on osf
