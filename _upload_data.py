@@ -1,6 +1,6 @@
 import click
-import os
 from osfclient.api import OSF
+import os
 import tarfile
 
 # this script does the same as (from terminal)
@@ -27,8 +27,12 @@ PROJECT_CODE_PRIVATE = 'vw8sh'
     "--local_path", required=True,
     help="path where you store all the data"
 )
-def upload_recursive_to_osf(username, password, local_path):
-    # here we are only using recursive
+def upload_to_osf(username, password, local_path):
+    # All the data in the data folder will be:
+    # 1. split to public and private data directories if not done already
+    # 2. zipped to tar.gz format
+    # 3. uploaded to private and public osf repositiories
+
     if not os.path.isdir(local_path):
         raise RuntimeError(f"Expected source ({local_path})"
                            "to be a directory")
@@ -45,6 +49,7 @@ def upload_recursive_to_osf(username, password, local_path):
     #
     # here the split has already been done beforehand
 
+    # TODO: assert that data split to public and private
     project_codes = [PROJECT_CODE_PUBLIC, PROJECT_CODE_PRIVATE]
     project_types = ['public', 'private']
 
