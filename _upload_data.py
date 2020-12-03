@@ -81,4 +81,4 @@ def upload_to_osf(username, password, local_path):
 
 
 if __name__ == "__main__":
-    upload_recursive_to_osf()
+    upload_to_osf()
