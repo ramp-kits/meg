@@ -1,6 +1,6 @@
 import click
 from osfclient.api import OSF
-import os
+from pathlib import Path
 import tarfile
 
 # this script does the same as (from terminal)
@@ -33,7 +33,9 @@ def upload_to_osf(username, password, local_path):
     # 2. zipped to tar.gz format
     # 3. uploaded to private and public osf repositiories
 
-    if not os.path.isdir(local_path):
+    local_path = Path(local_path)
+    remote_path = Path(REMOTE_PATH)
+    if not local_path.is_dir():
         raise RuntimeError(f"Expected source ({local_path})"
                            "to be a directory")
     osf = OSF(username=username, password=password)
@@ -49,25 +51,25 @@ def upload_to_osf(username, password, local_path):
     #
     # here the split has already been done beforehand
 
-    # TODO: assert that data split to public and private
+    # make sure there are private and public subdirs in your data directory
+    assert (local_path / 'private').is_dir()
+    assert (local_path / 'public').is_dir()
+
     project_codes = [PROJECT_CODE_PUBLIC, PROJECT_CODE_PRIVATE]
     project_types = ['public', 'private']
 
     for project_code, project_type in zip(project_codes, project_types):
 
         print(f'compressing {project_type} data')
-        used_dir = os.path.join(local_path, project_type)
-        tar_name = os.path.join(local_path, project_type + '.tar.gz')
+        used_dir = local_path / project_type
+        tar_name = local_path / (project_type + '.tar.gz')
 
         # add files from the given dir to your archive
         with tarfile.open(tar_name, "w:gz") as tar_handle:
-            for root, dirs, files in os.walk(used_dir):
-                local_dir = os.path.relpath(root, used_dir)
-                if local_dir == '.':
-                    local_dir = ''
-                for file in files:
-                    tar_handle.add(os.path.join(root, file),
-                                   arcname=os.path.join(local_dir, file))
+            for next_file in used_dir.rglob('*.*'):
+                print(next_file)
+                remote_name = next_file.relative_to(used_dir)
+                tar_handle.add(next_file, arcname=remote_name)
         print(f'uploading {project_type} data')
 
         # establish the connection with the correct repo on osf
@@ -75,7 +77,7 @@ def upload_to_osf(username, password, local_path):
         store = project.storage('osfstorage')
 
         with open(tar_name, 'rb') as fp:
-            fname = os.path.join(REMOTE_PATH, project_type + '.tar.gz')
+            fname = remote_path / (project_type + '.tar.gz')
             store.create_file(fname, fp, force=True)
         print(f'successfully uploaded {fname} to {REMOTE_PATH}')
 
