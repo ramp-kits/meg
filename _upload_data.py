@@ -66,7 +66,9 @@ def upload_to_osf(username, password, local_path):
 
         # add files from the given dir to your archive
         with tarfile.open(tar_name, "w:gz") as tar_handle:
-            for next_file in used_dir.rglob('*.*'):
+            for next_file in used_dir.rglob('*'):
+                if not next_file.is_file():
+                    continue
                 print(next_file)
                 remote_name = next_file.relative_to(used_dir)
                 tar_handle.add(next_file, arcname=remote_name)
