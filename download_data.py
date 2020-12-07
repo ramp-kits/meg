@@ -1,5 +1,5 @@
-import click
 import os
+import click
 from osfclient.api import OSF
 
 # NOTE: we are not using the fetch_from_osf from ramp_utils.datasets because
