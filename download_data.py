@@ -12,20 +12,21 @@ from osfclient.exceptions import UnauthorizedException
 
 LOCAL_DATA = Path(__file__).parent / "data"
 
-CHALLENGE_NAME = 'test'
+CHALLENGE_NAME = 'meg'
 # you might choosing checking for the correct checksum, if not set
 # data_checksum to None
 RAMP_FOLDER_CONFIGURATION = {
     'public': dict(
         code='t4uf8', archive_name='public.tar.gz',
-        data_checksum=None  # 1762354359
+        # to findout checksum use function
+        # defined below: hash_folder(folder_path)
+        data_checksum=1168455116
     ),
     'private': dict(
         code='vw8sh', archive_name='private.tar.gz',
-        data_checksum=None  # 2915900195
+        data_checksum=3234741618
     ),
 }
-DOWNLOAD_URL = "https://plmbox.math.cnrs.fr/f/8224e749026747758c56/?dl=1"
 
 
 def get_connection_info(get_private, username=None, password=None):
